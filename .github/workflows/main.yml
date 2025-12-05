@@ -1,4 +1,4 @@
-name: .NET CI - Run Unit Tests
+name: Python CI - Run Unit Tests
 
 on: [push]
 
@@ -10,39 +10,26 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        dotnet-version: '8.0.x'
+        python-version: '3.10'  # Укажите вашу версию Python
     
-    # Шаг для поиска проекта
-    - name: Find and test projects
+    - name: Install dependencies
       run: |
-        # Ищем все .csproj файлы
-        echo "Looking for .csproj files..."
-        find . -name "*.csproj" -type f
-        
-        # Если есть solution файл - используем его
-        if [ -f "*.sln" ]; then
-          echo "Found solution file, running tests..."
-          dotnet test --configuration Release --verbosity normal
-        else
-          # Ищем первый .csproj файл (обычно это тестовый проект)
-          PROJECT_FILE=$(find . -name "*.Tests.csproj" -o -name "*.Test.csproj" | head -1)
-          
-          if [ -z "$PROJECT_FILE" ]; then
-            # Если нет тестового проекта, берем любой .csproj
-            PROJECT_FILE=$(find . -name "*.csproj" | head -1)
-          fi
-          
-          if [ -n "$PROJECT_FILE" ]; then
-            echo "Testing project: $PROJECT_FILE"
-            dotnet test "$PROJECT_FILE" --configuration Release --verbosity normal
-          else
-            echo "ERROR: No .csproj files found!"
-            exit 1
-          fi
-        fi
+        python -m pip install --upgrade pip
+        pip install pytest  # Или ваш фреймворк для тестов
+        # Если есть requirements.txt:
+        # pip install -r requirements.txt
+    
+    - name: Run tests with pytest
+      run: |
+        pytest --verbose  # или python -m pytest
+    
+    # Альтернативно, если используете unittest:
+    # - name: Run tests with unittest
+    #   run: |
+    #     python -m unittest discover -v
 
   test-on-windows:
     runs-on: windows-latest
@@ -51,42 +38,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        dotnet-version: '8.0.x'
+        python-version: '3.10'
     
-    - name: Find and test projects
-      shell: pwsh
+    - name: Install dependencies
       run: |
-        # Для Windows используем PowerShell
-        Write-Host "Looking for .csproj files..."
-        Get-ChildItem -Recurse -Filter "*.csproj" | ForEach-Object { Write-Host $_.FullName }
-        
-        # Если есть solution файл
-        $solution = Get-ChildItem -Filter "*.sln" | Select-Object -First 1
-        if ($solution) {
-          Write-Host "Found solution file: $($solution.Name)"
-          dotnet test --configuration Release --verbosity normal
-        } else {
-          # Ищем тестовый проект
-          $testProject = Get-ChildItem -Recurse -Filter "*.Tests.csproj" | Select-Object -First 1
-          if (-not $testProject) {
-            $testProject = Get-ChildItem -Recurse -Filter "*Test*.csproj" | Select-Object -First 1
-          }
-          
-          if ($testProject) {
-            Write-Host "Testing project: $($testProject.FullName)"
-            dotnet test $testProject.FullName --configuration Release --verbosity normal
-          } else {
-            # Берем любой .csproj
-            $anyProject = Get-ChildItem -Recurse -Filter "*.csproj" | Select-Object -First 1
-            if ($anyProject) {
-              Write-Host "Testing project: $($anyProject.FullName)"
-              dotnet test $anyProject.FullName --configuration Release --verbosity normal
-            } else {
-              Write-Host "ERROR: No .csproj files found!"
-              exit 1
-            }
-          }
-        }
+        python -m pip install --upgrade pip
+        pip install pytest
+    
+    - name: Run tests with pytest
+      run: |
+        pytest --verbose
