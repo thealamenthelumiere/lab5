@@ -13,12 +13,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'  # Укажите вашу версию Python
+        python-version: '3.10'  
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest  # Или ваш фреймворк для тестов
+        pip install pytest 
         # Если есть requirements.txt:
         # pip install -r requirements.txt
     
@@ -26,7 +26,7 @@ jobs:
       run: |
         pytest --verbose  # или python -m pytest
     
-    # Альтернативно, если используете unittest:
+    # Альтернативно, если используется unittest:
     # - name: Run tests with unittest
     #   run: |
     #     python -m unittest discover -v
